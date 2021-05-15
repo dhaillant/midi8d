@@ -37,20 +37,16 @@ void handleNoteOn(byte channel, byte pitch, byte velocity)
   // gate is the output number to be activated
   byte gate = 0;
   
-  // if the channel of the incoming NoteOn message is the one we want to respond to
-  if (channel == MIDI_CHANNEL)
+  blink_MIDI_LED();
+  // if the received NoteOn message is in the range of the note we can respond to
+  if ((pitch >= LOWEST_MIDI_NOTE) || (pitch < HIGHEST_MIDI_NOTE))
   {
-    blink_MIDI_LED();
-    // if the received NoteOn message is in the range of the note we can respond to
-    if ((pitch >= LOWEST_MIDI_NOTE) || (pitch < HIGHEST_MIDI_NOTE))
-    {
-      // set the gate number according to the MIDI note number
-      gate = pitch - LOWEST_MIDI_NOTE;
-      // Gate ON
-      digitalWrite(gate_pins[gate], HIGH);
-      // record the gate state
-      gate_states[gate] = HIGH;
-    }
+    // set the gate number according to the MIDI note number
+    gate = pitch - LOWEST_MIDI_NOTE;
+    // Gate ON
+    digitalWrite(gate_pins[gate], HIGH);
+    // record the gate state
+    gate_states[gate] = HIGH;
   }
 }
 
@@ -62,21 +58,17 @@ void handleNoteOff(byte channel, byte pitch, byte velocity)
   // gate is the output number to be deactivated
   byte gate = 0;
   
-  // if the channel of the incoming NoteOff message is the one we want to respond to
-  if (channel == MIDI_CHANNEL)
+  // if the received NoteOff message is in the range of the note we can respond to
+  if ((pitch >= LOWEST_MIDI_NOTE) || (pitch < HIGHEST_MIDI_NOTE))
   {
-    // if the received NoteOff message is in the range of the note we can respond to
-    if ((pitch >= LOWEST_MIDI_NOTE) || (pitch < HIGHEST_MIDI_NOTE))
-    {
-      // set the gate number according to the MIDI note number
-      gate = pitch - LOWEST_MIDI_NOTE;
-      // Gate OFF
-      digitalWrite(gate_pins[gate], LOW);
-      // record the gate state
-      gate_states[gate] = LOW;
-    }
-    blink_MIDI_LED();
+    // set the gate number according to the MIDI note number
+    gate = pitch - LOWEST_MIDI_NOTE;
+    // Gate OFF
+    digitalWrite(gate_pins[gate], LOW);
+    // record the gate state
+    gate_states[gate] = LOW;
   }
+  blink_MIDI_LED();
 }
 
 // -----------------------------------------------------------------------------
