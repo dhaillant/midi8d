@@ -55,38 +55,38 @@ void blink_MIDI_LED(void)
 
 void setup()
 {
-	MIDI.setHandleClock(handleClock); // called on each clock pulse
-	MIDI.setHandleStart(handleStart); // called on START message
-	MIDI.setHandleStop(handleStop);   // called on STOP message
+  MIDI.setHandleClock(handleClock); // called on each clock pulse
+  MIDI.setHandleStart(handleStart); // called on START message
+  MIDI.setHandleStop(handleStop);   // called on STOP message
 
-	pinMode(WHOLE_PIN,      OUTPUT); // whole note pin as output
+  pinMode(WHOLE_PIN,      OUTPUT); // whole note pin as output
   pinMode(HALF_PIN,       OUTPUT); // 1/2 note pin as output
-	pinMode(QUARTER_PIN,    OUTPUT); // 1/4 note pin as output
-	pinMode(EIGHTH_PIN,     OUTPUT); // 1/8 note pin as output
-	pinMode(SIXTEENTH_PIN,  OUTPUT); // 1/16 note pin as output
+  pinMode(QUARTER_PIN,    OUTPUT); // 1/4 note pin as output
+  pinMode(EIGHTH_PIN,     OUTPUT); // 1/8 note pin as output
+  pinMode(SIXTEENTH_PIN,  OUTPUT); // 1/16 note pin as output
 
   pinMode(TRIPLET_PIN,    OUTPUT); // 1/3 note pin as output
   pinMode(PPQN_PIN,       OUTPUT); // 1/24 note pin as output
 
   pinMode(PLAY_PIN,       OUTPUT); // PLAY pin as output
 
-  pinMode(MIDI_LED,       OUTPUT); // PLAY pin as output
+  pinMode(MIDI_LED_PIN,   OUTPUT); // PLAY pin as output
 
   MIDI_LED_OFF;   // MIDI LED off by default
 
-	MIDI.begin();
+  MIDI.begin();
 }
 
 void loop()
 {
-	MIDI.read(); //read serial input as fast as possible
+  MIDI.read(); //read serial input as fast as possible
 }
 
 void handleStart()
 {
   digitalWrite(PLAY_PIN, HIGH);
 
-	play_flag = true;
+  play_flag = true;
 
   blink_MIDI_LED();
 }
@@ -95,8 +95,8 @@ void handleStop()
 {
   digitalWrite(PLAY_PIN, LOW);
   
-	play_flag = false;
-	clock_step = 0;
+  play_flag = false;
+  clock_step = 0;
 
   digitalWrite(WHOLE_PIN, LOW);       // whole note OFF
   digitalWrite(HALF_PIN, LOW);        // half note OFF
@@ -111,18 +111,18 @@ void handleStop()
 
 void handleClock()
 {
-	if ( play_flag ) {
-		clock_step = clock_step % 96; // this will reset the clock_step to 0 after 96 ppqn are received,
-		//assuming your MIDI clock data is being sent at the standard 24ppqn that will reset clock_step every bar.
+  if ( play_flag ) {
+    clock_step = clock_step % 96; // this will reset the clock_step to 0 after 96 ppqn are received,
+    //assuming your MIDI clock data is being sent at the standard 24ppqn that will reset clock_step every bar.
 
     // Each pulse is 1 ppqn long
  
     // every 96 clock steps
-		if (clock_step == 0) {
-			digitalWrite(WHOLE_PIN, HIGH);      // whole note ON
-		} else {
-			digitalWrite(WHOLE_PIN, LOW);       // whole note OFF
-		}
+    if (clock_step == 0) {
+      digitalWrite(WHOLE_PIN, HIGH);      // whole note ON
+    } else {
+      digitalWrite(WHOLE_PIN, LOW);       // whole note OFF
+    }
 
     // every 48 on 96 clock steps
     if (clock_step % 48 == 0) {
@@ -132,25 +132,25 @@ void handleClock()
     }
 
     // every 24 clock steps
-		if (clock_step % 24 == 0) {
-			digitalWrite(QUARTER_PIN, HIGH);    // quarter note ON
-		} else {
-			digitalWrite(QUARTER_PIN, LOW);     // quarter note OFF
-		}
+    if (clock_step % 24 == 0) {
+      digitalWrite(QUARTER_PIN, HIGH);    // quarter note ON
+    } else {
+      digitalWrite(QUARTER_PIN, LOW);     // quarter note OFF
+    }
 
     // every 12 clock steps
-		if (clock_step % 12 == 0) {
-			digitalWrite(EIGHTH_PIN, HIGH);     // eighth note ON
-		} else {
-			digitalWrite(EIGHTH_PIN, LOW);      // eighth note OFF
-		}
+    if (clock_step % 12 == 0) {
+      digitalWrite(EIGHTH_PIN, HIGH);     // eighth note ON
+    } else {
+      digitalWrite(EIGHTH_PIN, LOW);      // eighth note OFF
+    }
 
     // every 6 clock steps
-		if (clock_step % 6 == 0) {
-			digitalWrite(SIXTEENTH_PIN, HIGH);  // sixteenth note ON
-		} else {
-			digitalWrite(SIXTEENTH_PIN, LOW);   // sixteenth note OFF
-		}
+    if (clock_step % 6 == 0) {
+      digitalWrite(SIXTEENTH_PIN, HIGH);  // sixteenth note ON
+    } else {
+      digitalWrite(SIXTEENTH_PIN, LOW);   // sixteenth note OFF
+    }
 
     // every 32 clock steps
     if (clock_step % 32 == 0) {
@@ -167,7 +167,7 @@ void handleClock()
     }
 
     clock_step++;
-	}
+  }
 
   blink_MIDI_LED();
 }
