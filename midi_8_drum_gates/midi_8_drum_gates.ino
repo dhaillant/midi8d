@@ -1,22 +1,49 @@
 /*
- * MIDI 8 Drum Gate Outputs - Channel 10
+ * 8 Drum Gate Outputs from MIDI Channel 10
+ * 
+ * Version for original MIDI8d and MIDI8d+ (with PWM outputs)
+ * Change HW_VERSION for correct pin order.
  * 
  * Requires the Arduino MIDI Library:
  * https://github.com/FortySevenEffects/arduino_midi_library
  * 
 */
 
+/* 
+ * Hardware version
+ * 
+ * Comment/Uncomment the correct lines: 
+ */
+//#define HW_MIDI8d_Original
+#define HW_MIDI8d_Plus
+
+
 #include <MIDI.h>
 
-// Pin definitions
-#define MIDI_LED A0
 
-#define MIDI_IN 0
-
-#define NBR_GATE_OUTS 8
-byte gate_pins[NBR_GATE_OUTS] = {
-  2, 3, 4, 5, 6, 7, 8, 9
-};    // array of output pin numbers (Arduino #)
+#ifdef HW_MIDI8d_Plus
+  // Pin definitions
+  #define MIDI_LED A0
+  
+  #define MIDI_IN 0
+  
+  #define NBR_GATE_OUTS 8
+  
+  byte gate_pins[NBR_GATE_OUTS] = {
+    2, 4, 7, 8, 9, 3, 5, 6
+  };    // array of output pin numbers (Arduino #)
+#else
+  // Pin definitions
+  #define MIDI_LED A0
+  
+  #define MIDI_IN 0
+  
+  #define NBR_GATE_OUTS 8
+  
+  byte gate_pins[NBR_GATE_OUTS] = {
+    2, 3, 4, 5, 6, 7, 8, 9
+  };    // array of output pin numbers (Arduino #)
+#endif
 
 
 // state of each gate output
@@ -29,7 +56,9 @@ bool gate_states[NBR_GATE_OUTS];
 
 // lowest note we want to respond to
 #define LOWEST_MIDI_NOTE 36
-// highest note will be 
+// 36 (decimal value for MIDI note number) corresponds to C2
+
+// then, highest note will be 
 #define HIGHEST_MIDI_NOTE LOWEST_MIDI_NOTE + NBR_GATE_OUTS - 1
 
 
