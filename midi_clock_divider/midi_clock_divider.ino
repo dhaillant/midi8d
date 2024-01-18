@@ -7,21 +7,42 @@
  * Original code: https://modwiggler.com/forum/viewtopic.php?t=149713
 */
 
+/* 
+ * Hardware version
+ * 
+ * Comment/Uncomment the correct lines: 
+ */
+//#define HW_MIDI8d_Original
+#define HW_MIDI8d_Plus
+
 
 
 #include <MIDI.h>
 MIDI_CREATE_DEFAULT_INSTANCE(); //instantiates midi stuff
 
-// PIN assignments
-#define WHOLE_PIN     2
-#define HALF_PIN      3
-#define QUARTER_PIN   4
-#define EIGHTH_PIN    5
-#define SIXTEENTH_PIN 6
 
-#define TRIPLET_PIN   7
-#define PPQN_PIN      8
-#define PLAY_PIN      9
+// PIN assignments
+#ifdef HW_MIDI8d_Plus
+  #define WHOLE_PIN     2
+  #define HALF_PIN      4
+  #define QUARTER_PIN   7
+  #define EIGHTH_PIN    8
+  #define SIXTEENTH_PIN 9
+  
+  #define TRIPLET_PIN   3
+  #define PPQN_PIN      5
+  #define PLAY_PIN      6
+#else
+  #define WHOLE_PIN     2
+  #define HALF_PIN      3
+  #define QUARTER_PIN   4
+  #define EIGHTH_PIN    5
+  #define SIXTEENTH_PIN 6
+  
+  #define TRIPLET_PIN   7
+  #define PPQN_PIN      8
+  #define PLAY_PIN      9
+#endif
 
 
 #define MIDI_LED_PIN  A0
@@ -73,6 +94,40 @@ void setup()
   pinMode(MIDI_LED_PIN,   OUTPUT); // PLAY pin as output
 
   MIDI_LED_OFF;   // MIDI LED off by default
+
+  // 4x Hello blinks
+  for (uint8_t i = 0; i < 8; i++)
+  {
+    blink_MIDI_LED();
+    delay(60);
+  }
+  // then K2000 style...
+  const uint8_t k2000_delay = 100;
+  digitalWrite(WHOLE_PIN, HIGH);      // whole note ON
+  delay(k2000_delay);
+  digitalWrite(WHOLE_PIN, LOW);       // whole note OFF
+  digitalWrite(HALF_PIN, HIGH);       // half note ON
+  delay(k2000_delay);
+  digitalWrite(HALF_PIN, LOW);        // half note OFF
+  digitalWrite(QUARTER_PIN, HIGH);    // quarter note ON
+  delay(k2000_delay);
+  digitalWrite(QUARTER_PIN, LOW);     // quarter note OFF
+  digitalWrite(EIGHTH_PIN, HIGH);     // eighth note ON
+  delay(k2000_delay);
+  digitalWrite(EIGHTH_PIN, LOW);      // eighth note OFF
+  digitalWrite(SIXTEENTH_PIN, HIGH);  // sixteenth note ON
+  delay(k2000_delay);
+  digitalWrite(SIXTEENTH_PIN, LOW);   // sixteenth note OFF
+  digitalWrite(TRIPLET_PIN, HIGH);    // triplet note ON
+  delay(k2000_delay);
+  digitalWrite(TRIPLET_PIN, LOW);     // triplet note OFF
+  digitalWrite(PPQN_PIN, HIGH);       // PPQN note ON
+  delay(k2000_delay);
+  digitalWrite(PPQN_PIN, LOW);        // PPQN note OFF
+  digitalWrite(PLAY_PIN, HIGH);       // Play ON
+  delay(k2000_delay);
+  digitalWrite(PLAY_PIN, LOW);        // Play OFF
+
 
   MIDI.begin();
 }
