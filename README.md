@@ -15,6 +15,17 @@ Two example sketches demonstrate how to use the module.
 
 See https://github.com/dhaillant/midi8d/wiki for detailed firmware information
 
+| Gate | Arduino Pin # |
+|------|---------------|
+| 1    | 2             |
+| 2    | 3             |
+| 3    | 4             |
+| 4    | 5             |
+| 5    | 6             |
+| 6    | 7             |
+| 7    | 8             |
+| 8    | 9             |
+
 ---
 New :
 
@@ -27,6 +38,21 @@ This is a very convenient, easy and inexpensive solution for adding CV controls 
 However, PWM isn't exactly perfect for sensitive and precise CV values (example, VCO tuning), but PWM is ok for anything else: CV for VCF frequency, CV for VCA, CV for delays, FM modulations etc. You can even produce audio signals.
 
 The first 3 analog outputs have 8 bits resolution. The 4th one is 16 bits.
+
+Order of output pins is different from the original MIDI8d. See code for hardware adaptation.
+
+Pin order is now 2, 4, 7, 8, 9, 3, 5, 6
+
+| Output | Arduino Pin # | Function     |
+|--------|---------------|--------------|
+| 1      | 2             | Gate         |
+| 2      | 4             | Gate         |
+| 3      | 7             | Gate         |
+| 4      | 8             | Gate         |
+| 5      | 9/10          | PWM 8/16bits |
+| 6      | 3             | PWM 8bits    |
+| 7      | 5             | PWM 8bits    |
+| 8      | 6             | PWM 8bits    |
 
 ---
 
