@@ -54,7 +54,7 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 
 void toggle_MIDI_LED(void)
 {
-  // pin PC0 is connected to MIDI activity LED
+  // pin PC0 (A0) is connected to MIDI activity LED
   PORTC ^= (1 << 0);
 }
 
@@ -112,7 +112,7 @@ void setup()
   digitalWrite(MIDI_LED, LOW);
   delay(200);
   toggle_MIDI_LED();
-  delay(200);
+  //delay(200);
 
   for (byte i = 0; i < NBR_DIG_OUTS; i++)
   {
