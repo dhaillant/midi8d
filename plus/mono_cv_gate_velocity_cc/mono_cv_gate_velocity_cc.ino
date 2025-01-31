@@ -328,6 +328,9 @@ void handleStart(void)
   play_flag = true;
   clock_step = 0;
 
+  // manually switch ON STARTSTOP_PIN
+  digitalWrite(STARTSTOP_PIN, HIGH);
+
   needs_refresh = true;
   toggle_MIDI_LED();
 }
@@ -347,6 +350,9 @@ void handleStop(void)
   play_flag = false;
   clock_step = 0;
   
+  // manually switch OFF STARTSTOP_PIN
+  digitalWrite(STARTSTOP_PIN, LOW);
+
   needs_refresh = true;
   toggle_MIDI_LED();
 }
