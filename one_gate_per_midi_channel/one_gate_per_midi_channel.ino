@@ -61,8 +61,13 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 
 
 
-bool needs_refresh;
-uint8_t MIDI_blink;
+bool gates_need_refresh = false;
+bool MIDI_LED_needs_refresh = false;
+
+// MIDI_LED_BLINK_TIME is in ms (timer is 1kHz)
+// (do not exceed uint8_t max value):
+#define MIDI_LED_BLINK_TIME 20
+uint8_t MIDI_blink_counter;
 
 
 struct State {
@@ -84,17 +89,24 @@ ISR(TIMER0_COMPA_vect) {
 
 void tick()
 {
-  if (MIDI_blink)
+  // if MIDI_blink_counter is not 0
+  if (MIDI_blink_counter)
   {
-    --MIDI_blink;
-    needs_refresh = true;
+    --MIDI_blink_counter;
+  }
+  else
+  {
+    // MIDI_blink_counter is 0 so we can request a refresh of the outputs
+    MIDI_LED_needs_refresh = true;
   }
 }
 
-#define MIDI_LED_BLINK_TIME 20
+// start MIDI LED timer
 void blink_MIDI_LED(void)
 {
-  MIDI_blink = MIDI_LED_BLINK_TIME;
+  // set the counter to a predefined value. It will be decreased by tick() at 1kHz. At 0, LED will be turned off
+  MIDI_blink_counter = MIDI_LED_BLINK_TIME;
+  MIDI_LED_needs_refresh = true;
 }
 
 
@@ -155,14 +167,16 @@ void loop()
   MIDI.read();
 
   // update outputs if needed
-  if (needs_refresh)
+  if (gates_need_refresh)
   {
     render_gates();
-    render_MIDI_LED();
-
-    needs_refresh = false;
+    gates_need_refresh = false;
   }
-
+  if (MIDI_LED_needs_refresh)
+  {
+    render_MIDI_LED();
+    MIDI_LED_needs_refresh = false;
+  }
 
 
   if (control_clock_tick)
@@ -188,7 +202,7 @@ void handleNoteOn(byte channel, byte pitch, byte velocity)
       {
         state[channel - 1].count = 255;
       }
-      needs_refresh = true;
+      gates_need_refresh = true;
     }
   }
 
@@ -205,7 +219,7 @@ void handleNoteOff(byte channel, byte pitch, byte velocity)
     {
       state[channel - 1].count--;
     }
-    needs_refresh = true;
+    gates_need_refresh = true;
   }
 
   blink_MIDI_LED();
@@ -221,5 +235,5 @@ void render_gates(void)
 
 void render_MIDI_LED()
 {
-  digitalWrite(MIDI_LED,MIDI_blink > 0 ? LOW : HIGH);
+  digitalWrite(MIDI_LED,MIDI_blink_counter > 0 ? LOW : HIGH);
 }
