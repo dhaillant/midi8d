@@ -49,11 +49,6 @@
   };    // array of output pin numbers (Arduino #)
 #endif
 
-void toggle_MIDI_LED(void)
-{
-  // pin PC0 is connected to MIDI activity LED
-  PORTC ^= (1 << 0);
-}
 
 
 #include <MIDI.h>
@@ -67,6 +62,14 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 
 
 
+bool MIDI_LED_needs_refresh = false;
+
+// MIDI_LED_BLINK_TIME is in ms (timer is 1kHz)
+// (do not exceed uint8_t max value):
+#define MIDI_LED_BLINK_TIME 20
+uint8_t MIDI_blink_counter;
+
+
 #include "note_stack.h"
 
 const uint8_t kNumVoices = NBR_GATE_OUTS; // one voice per MIDI channel, limited by the # of outputs
@@ -76,7 +79,6 @@ const uint8_t kRetriggerDuration = 2;
 
 bool needs_refresh;
 bool legato;
-uint8_t force_retrigger;
 
 
 struct State {
@@ -99,13 +101,25 @@ ISR(TIMER0_COMPA_vect) {
 
 void tick()
 {
-  if (force_retrigger)
+  // if MIDI_blink_counter is not 0
+  if (MIDI_blink_counter)
   {
-    --force_retrigger;
-    needs_refresh = true;
+    --MIDI_blink_counter;
+  }
+  else
+  {
+    // MIDI_blink_counter is 0 so we can request a refresh of the outputs
+    MIDI_LED_needs_refresh = true;
   }
 }
 
+// start MIDI LED timer
+void blink_MIDI_LED(void)
+{
+  // set the counter to a predefined value. It will be decreased by tick() at 1kHz. At 0, LED will be turned off
+  MIDI_blink_counter = MIDI_LED_BLINK_TIME;
+  MIDI_LED_needs_refresh = true;
+}
 
 
 
@@ -116,6 +130,15 @@ void setup()
 
   // set Outputs
   pinMode (MIDI_LED, OUTPUT);
+
+  // initialize MIDI LED state (off) and blink
+  for (uint8_t i = 0; i < 4; i++)
+  {
+    digitalWrite(MIDI_LED, LOW);
+    delay(50);
+    digitalWrite(MIDI_LED, HIGH);
+    delay(100);
+  }
 
   // GATE outputs
   for (byte i = 0; i < NBR_GATE_OUTS; i++)
@@ -128,18 +151,13 @@ void setup()
     delay(50);
   }
 
-  MIDI.setHandleNoteOn(handleNoteOn);
-  MIDI.setHandleNoteOff(handleNoteOff);
-
+  // note_stack initialisation
   for (uint8_t i = 0; i < NBR_GATE_OUTS; i++)
   {
-    mono_allocator[i].Init();   // note_stack initialisation
+    mono_allocator[i].Init();
   }
 
-  // Initiate MIDI communications, listen to ALL channels
-  MIDI.begin(MIDI_CHANNEL);
-
-
+  // Set a 1kHz timer for non-blocking Trigger and blinking durations/delays
   TCCR0A |= (1 << WGM01);                       // Set Timer0 to CTC (Clear Timer on Compare Match) mode
   TCCR0B |= (1 << CS01) | (1 << CS00);          // Set prescaler to 64 (prescaler bits: CS02=0, CS01=1, CS00=1)
   OCR0A = 124; // (16MHz / (64 * 1000Hz)) - 1   // Set compare match register to generate a 1kHz frequency
@@ -147,10 +165,12 @@ void setup()
   sei();                                        // Enable interrupts
 
 
-  digitalWrite(MIDI_LED, LOW);
-  delay(200);
-  toggle_MIDI_LED();
-  delay(200);
+  // connect MIDI messages to handlers
+  MIDI.setHandleNoteOn(handleNoteOn);
+  MIDI.setHandleNoteOff(handleNoteOff);
+
+  // Initiate MIDI communications, listen to ALL channels
+  MIDI.begin(MIDI_CHANNEL);
 }
 
 void loop()
@@ -165,6 +185,12 @@ void loop()
 
     needs_refresh = false;
   }
+  if (MIDI_LED_needs_refresh)
+  {
+    render_MIDI_LED();
+    MIDI_LED_needs_refresh = false;
+  }
+
 
   if (control_clock_tick)
   {
@@ -175,8 +201,6 @@ void loop()
 
 void handleNoteOn(byte channel, byte pitch, byte velocity)
 {
-  toggle_MIDI_LED();
-
   if ((channel > 0) && (channel <= 8))
   {
     if (velocity == 0)
@@ -194,14 +218,12 @@ void handleNoteOn(byte channel, byte pitch, byte velocity)
     needs_refresh = true;
   }
 
-  toggle_MIDI_LED();
+  blink_MIDI_LED();
 }
 
 void handleNoteOff(byte channel, byte pitch, byte velocity)
 {
   // NoteOn messages with 0 velocity are interpreted as NoteOffs.
-  
-  toggle_MIDI_LED();
 
   if ((channel > 0) && (channel <= 8))
   {
@@ -214,7 +236,7 @@ void handleNoteOff(byte channel, byte pitch, byte velocity)
     needs_refresh = true;
   }
 
-  toggle_MIDI_LED();
+  blink_MIDI_LED();
 }
 
 void render_gates(void)
@@ -223,4 +245,9 @@ void render_gates(void)
   {
     digitalWrite(gate_pins[i], state.gate[i]);
   }
+}
+
+void render_MIDI_LED()
+{
+  digitalWrite(MIDI_LED,MIDI_blink_counter > 0 ? LOW : HIGH);
 }
