@@ -8,9 +8,24 @@
  * Code from CVPAL (note_stack, midi_handler)
  * Copyright 2013 Emilie Gillet (emilie.o.gillet@gmail.com)
  * https://github.com/pichenettes/cvpal
-
  * 
- * Will output GATE signal on output 1 (pin D2) and filtered PWM signal on output 2 (pin D3)
+ * 
+ * This code transforms MIDI8d Plus into a classic MIDI2CV interface, with:
+ *   Role               Output   Pin     Type
+ *   -----------------------------------------------------
+ *   Pitch              5        D9/D10  16-bit PWM
+ *   Velocity           6        D3      8-bit PWM
+ *   ControlChange (CC) 7        D5      8-bit PWM
+ *   Gate               8        D6      Digital (On/Off)
+ *   
+ * Then:
+ *   Role               Output   Pin     Type
+ *   -----------------------------------------------------
+ *   Start/Stop gate    1        D2      Digital (On/Off)
+ *   PPQN clock         2        D4      Digital (On/Off)
+ *   Sixteenth clock    3        D7      Digital (On/Off)
+ *   Triplet clock      4        D8      Digital (On/Off)
+ * 
  * MIDI LED blinks on activity
  * MIDI messages for all channels are processed
  * 
