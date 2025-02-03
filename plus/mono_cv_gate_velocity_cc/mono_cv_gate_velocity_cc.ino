@@ -64,10 +64,6 @@
 
 
 
-//#define NBR_PWM_OUTS 5
-//const byte pwm_pins[NBR_PWM_OUTS] = {
-//  3, 5, 6, 9, 10
-//};    // array of pwm output pin numbers (Arduino #)
 
 /*
  * The following pins can do PWM:
@@ -77,10 +73,6 @@
  * D10 is for 16bit resolution and is combined with D9
  */
 
-//#define NBR_DIG_OUTS 5
-//const byte dig_pins[NBR_DIG_OUTS] = {
-//  2, 4, 7, 8, 6
-//};    // array of non-pwm output pin numbers (Arduino #)
 
 
 
@@ -111,8 +103,6 @@ uint8_t force_retrigger;
 
 
 struct State {
-//  uint16_t cv[3];
-//  bool gate[5];
   uint16_t pitch;
   uint8_t velocity;
   bool gate;
@@ -147,8 +137,15 @@ volatile uint8_t control_clock_tick;
 ISR(TIMER0_COMPA_vect) {
   // 1kHz clock for timing trigger pulses.
   ++control_clock_tick;
+}
 
-  //toggle_MIDI_LED();
+void tick()
+{
+  if (force_retrigger)
+  {
+    --force_retrigger;
+    needs_refresh = true;
+  }
 }
 
 void toggle_MIDI_LED(void)
@@ -259,7 +256,6 @@ void handleNoteOn(byte channel, byte pitch, byte velocity)
   else
   {
     mono_allocator[0].NoteOn(pitch, velocity);
-//    if (state.gate[GATE] && !legato[0]) {
     if (state.gate && !legato) {
       force_retrigger = kRetriggerDuration;
     }
@@ -368,40 +364,27 @@ inline uint16_t NoteToCv(uint8_t pitch, int16_t bend)
   
   uint16_t pwm = map(pitch, 12, 72, 0, 65535);
   return pwm;
-
-  //int16_t pitch = base << 7;
-  //pitch += bend >> 5;
-  //return calibration_table_[output_channel].Calibrate(pitch);
-  //return pitch;
 }
 
 void render_mono_pitch(void)
 {
   if (mono_allocator[0].size()) {
     int16_t note = mono_allocator[0].most_recent_note().note;
-//    state.cv[PITCH] = NoteToCv(note, pitch_bend[0]);
-//    state.cv[VELOCITY] = mono_allocator[0].most_recent_note().velocity << 1;  // shift to map to 0..256
     state.pitch = NoteToCv(note, pitch_bend);
     state.velocity = mono_allocator[0].most_recent_note().velocity << 1;  // shift to map to 0..256
-//    state.gate[GATE] = !force_retrigger[0];
     state.gate = !force_retrigger;
   } else {
-//    state.gate[GATE] = false;
     state.gate = false;
   }
 
-//  analogWrite(PITCH_MSB_PIN, (state.cv[PITCH] & 0xff00) >> 8);
-//  analogWrite(PITCH_LSB_PIN, state.cv[PITCH] & 0xff);
   analogWrite(PITCH_MSB_PIN, (state.pitch & 0xff00) >> 8);
   analogWrite(PITCH_LSB_PIN, state.pitch & 0xff);
 
-//  analogWrite(VELOCITY_PIN, state.cv[VELOCITY]);
   analogWrite(VELOCITY_PIN, state.velocity);
 }
 
 void render_gates(void)
 {
-//  digitalWrite(GATE_PIN, state.gate[GATE]);
   digitalWrite(GATE_PIN, state.gate);
 }
 
@@ -471,14 +454,5 @@ void render_clocks(void)
     } else {
       digitalWrite(PPQN_PIN, LOW);        // PPQN note OFF
     }
-  }
-}
-
-void tick()
-{
-  if (force_retrigger)
-  {
-    --force_retrigger;
-    needs_refresh = true;
   }
 }
