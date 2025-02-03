@@ -1,12 +1,12 @@
 /*
  * One Gate per MIDI Channel
  * 
- * Gate 1 to 8 is switched ON while a note is pressed on the corresponding MIDI channel.
+ * Each gate (1–8) remains ON as long as a note is held on its corresponding MIDI channel.
  * 
- * Example: if a NoteOn message is received on MIDI channel 2, Gate 2 is switched ON (+5V)
- * To keep track of how many notes are active per channel, each channel has a counter.
- * The counter is incremented on each NoteOn, and decreased on each NoteOff.
- * The gate stays ON until the counter goes back to 0 (ie. no note is active on that channel).
+ * Example: if a NoteOn message is received on MIDI channel 2, Gate 2 switches ON (+5V).
+ * To keep track of the number of active notes per channel, each channel has a counter.
+ * The counter increments on each NoteOn and decrements on each NoteOff.
+ * The gate remains ON until the counter returns to 0 (i.e., no active notes on that channel).
  * 
  * Version for original MIDI8d and MIDI8d+
  * Change HW_VERSION for correct pin order.
@@ -19,7 +19,7 @@
 /* 
  * Hardware version
  * 
- * Comment/Uncomment the correct line: 
+ * Comment/Uncomment the correct lines: 
  */
 #define HW_MIDI8d_Original
 //#define HW_MIDI8d_Plus
